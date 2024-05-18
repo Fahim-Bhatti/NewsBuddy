@@ -18,7 +18,9 @@ export class News extends Component {
     static propTypes = {
         country: PropTypes.string,
         pageSize: PropTypes.number,
-        category: PropTypes.string
+        category: PropTypes.string,
+        apiKey: PropTypes.string.isRequired,
+        setProgress: PropTypes.func.isRequired,
     }
 
     capitalizeFirstLetter = (string) => {
@@ -32,35 +34,34 @@ export class News extends Component {
             loading: false,
             page: 1,
             totalResults: 0,
-            showToTopButton: false
+            showToTopButton: false,
         };
         document.title = `${this.capitalizeFirstLetter(this.props.category)} - NewsBuddy`;
     }
 
-    async updateNews() {
+    async updateNews(page) {
         this.props.setProgress(10);
-        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=1&pageSize=${this.props.pageSize}`;
-        this.setState({ loading: 'true' });
+        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${page}&pageSize=${this.props.pageSize}`;
+        this.setState({ loading: true });
         let data = await fetch(url);
         this.props.setProgress(30);
         let fetchedData = await data.json();
-        console.log(fetchedData);
         this.props.setProgress(70);
-        this.setState({
-            articles: fetchedData.articles,
+        this.setState((prevState) => ({
+            articles: page === 1 ? fetchedData.articles : [...prevState.articles, ...fetchedData.articles],
             totalResults: fetchedData.totalResults,
             loading: false,
-            page:1
-        });
+            page: page,
+        }));
         this.props.setProgress(100);
     }
 
     async componentDidMount() {
-        await this.updateNews();
+        await this.updateNews(1);
         window.addEventListener('scroll', this.handleScroll);
     }
 
-    componentWillUnmount(){
+    componentWillUnmount() {
         window.removeEventListener('scroll', this.handleScroll);
     }
 
@@ -90,47 +91,37 @@ export class News extends Component {
     //     this.updateNews()
     // }
 
-    // fetchMoreData = async () => {
-    //     const nextPage = this.state.Page+1;
-    //     const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
-    //     this.setState({loading:true})
-    //     let data = await fetch(url);
-    //     let fetchedData = await data.json();
-    //     console.log(fetchedData);
-    //     this.setState(prevState => ({
-    //         articles: [...prevState.articles, ...fetchedData.articles],
-    //         page: nextPage,
-    //         // totalResults: fetchedData.totalResults,
-    //         loading: false
-    //     }))
-    // };
-
     fetchMoreData = async () => {
         const nextPage = this.state.page + 1;
-        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${nextPage}&pageSize=${this.props.pageSize}`;
-        try {
-            this.setState({ loading: true });
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error('Failed to fetch articles');
-            }
-            const fetchedData = await response.json();
-            console.log(fetchedData);
-            if (fetchedData.articles.length > 0) {
-                this.setState(prevState => ({
-                    articles: [...prevState.articles, ...fetchedData.articles],
-                    page: nextPage,
-                    loading: false 
-                }));
-            } else {
-                this.setState({ loading: false });
-            }
-        } catch (error) {
-            console.error('Error fetching articles', error);
-            this.setState({ loading: false });
-        }
+        await this.updateNews(nextPage);
     };
-    
+
+    // fetchMoreData = async () => {
+    //     const nextPage = this.state.page + 1;
+    //     const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${this.props.apiKey}&page=${nextPage}&pageSize=${this.props.pageSize}`;
+    //     try {
+    //         this.setState({ loading: true });
+    //         const response = await fetch(url);
+    //         if (!response.ok) {
+    //             throw new Error('Failed to fetch articles');
+    //         }
+    //         const fetchedData = await response.json();
+    //         console.log(fetchedData);
+    //         if (fetchedData.articles.length > 0) {
+    //             this.setState(prevState => ({
+    //                 articles: [...prevState.articles, ...fetchedData.articles],
+    //                 page: nextPage,
+    //                 loading: false 
+    //             }));
+    //         } else {
+    //             this.setState({ loading: false });
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching articles', error);
+    //         this.setState({ loading: false });
+    //     }
+    // };
+
 
     render() {
         return (
@@ -138,13 +129,6 @@ export class News extends Component {
                 <div className="container my-3">
                     <h1 className='text-center'>NewsBuddy - Top <strong>{this.capitalizeFirstLetter(this.props.category)}</strong> Headlines</h1>
                     {this.state.loading && <Spinner />}
-                    {/* {loading && (
-                    <div className="text-center">
-                        <div className="spinner-border" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                )} */}
                     <CurrentCategory />
                     <InfiniteScroll
                         dataLength={this.state.articles.length}
@@ -154,22 +138,19 @@ export class News extends Component {
                     >
                         <div className="container">
                             <div className="row my-3">
-                                {this.state.articles.map((element, index) => {
-                                        return <div className="col-md-4" key = {index}>
-                                        <div className="col-md-4" key={element.url}>
-                                            <NewsItem
-                                                title={element.title ? element.title : ''}
-                                                description={element.description ? element.description : ''}
-                                                imageURL={element.urlToImage ? element.urlToImage : ''}
-                                                url={element.url}
-                                                author={element.author}
-                                                date={element.publishedAt}
-                                                source={element.source.name}
-                                            />
-                                        </div>
-                                        </div>
-                                    })
-                                }
+                                {this.state.articles.map((element, index) => (
+                                    <div className="col-md-4" key={element.url + index}>
+                                        <NewsItem
+                                            title={element.title ? element.title : ''}
+                                            description={element.description ? element.description : ''}
+                                            imageURL={element.urlToImage ? element.urlToImage : ''}
+                                            url={element.url}
+                                            author={element.author}
+                                            date={element.publishedAt}
+                                            source={element.source.name}
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </InfiniteScroll>
@@ -194,11 +175,11 @@ export class News extends Component {
                         </li>
                     </ul>
                 </nav> */}
-                {this.state.showToTopButton && (
-                    <Button variant="primary" onClick={this.scrollToTop} style={styles.toTopButton}>
-                        &uarr;
-                    </Button>
-                )}
+                    {this.state.showToTopButton && (
+                        <Button variant="primary" onClick={this.scrollToTop} style={styles.toTopButton}>
+                            &uarr;
+                        </Button>
+                    )}
                 </div>
             </>
         );
