@@ -7,7 +7,7 @@ export class Navbar extends Component {
             <div>
                 <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
                     <div className="container-fluid">
-                        <Link className="navbar-brand" to="/">~WhatsNew~</Link>
+                        <Link className="navbar-brand" to="/">~NewsBuddy~</Link>
                         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportdContent" aria-expanded="false" aria-label="Toggle navigation">
                             <span className="navbar-toggler-icon"></span>
                         </button>
@@ -38,9 +38,9 @@ export class Navbar extends Component {
                                     <Link className='nav-link' to="technology">Technology</Link>
                                 </li>
                             </ul>
-                            <form class="d-flex" role="search">
-                                <input class="form-control me-2" type="search" placeholder="Search Here" aria-label="Search" />
-                                <button class="btn btn-outline-success" type="submit">Search</button>
+                            <form className="d-flex" role="search">
+                                <input className="form-control me-2" type="search" placeholder="Search Here" aria-label="Search" />
+                                <button className="btn btn-outline-success" type="submit">Search</button>
                             </form>
                         </div>
                     </div>

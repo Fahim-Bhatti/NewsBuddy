@@ -6,7 +6,7 @@ export class NewsItem extends Component {
         return (
             <div className='my-3'>
                 <div className="card" style={{width: `22rem`}}>
-                    <img src={!imageURL ? "https://blog.logrocket.com/wp-content/uploads/2024/03/modern-api-data-fetching-methods-react.png" : imageURL} className="card-img-top" style={{ height: "200px", objectFit: "cover" }} alt="No Image" />
+                    <img src={!imageURL ? "https://blog.logrocket.com/wp-content/uploads/2024/03/modern-api-data-fetching-methods-react.png" : imageURL} className="card-img-top" style={{ height: "200px", objectFit: "cover" }} alt="Loading" />
                     <div className="card-body">
                         <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">{source}</span>
                         <h5 className="card-title">{title}..</h5>
